@@ -1,4 +1,10 @@
- <style>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game For Kids</title>
+    <style>
     body {
       margin: 0;
       font-family: 'Comic Sans MS', cursive, sans-serif;
@@ -78,3 +84,126 @@
       background: #e94e3d;
     }
   </style>
+</head>
+<body>
+  <h1 id="title">Welcome to Fun Learning!</h1>
+  <div class="menu" id="menu">
+    <button onclick="startGame('alphabet')">Learn Alphabets</button>
+    <button onclick="startGame('number')">Learn Numbers</button>
+    <button onclick="startGame('color')">Learn Colors</button>
+    <button onclick="startGame('shape')">Learn Shapes</button>
+  </div>
+
+  <div id="gameArea">
+    <div id="gameContent"></div>
+    <div id="options"></div>
+    <div id="message"></div>
+    <div id="score"></div>
+    <button id="restartBtn" onclick="restartGame()">Back to Menu</button>
+  </div>
+
+  <audio id="bgMusic" autoplay loop>
+    <source src="https://cdn.pixabay.com/download/audio/2023/03/24/audio_663a6db5df.mp3?filename=happy-children-141704.mp3" type="audio/mp3">
+  </audio>
+
+  <script>
+    const alphabetLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+    const numbers = Array.from({ length: 100 }, (_, i) => i + 1);
+    const colors = [
+      { name: 'Red', value: '#FF0000' }, { name: 'Blue', value: '#0000FF' }, { name: 'Green', value: '#008000' },
+      { name: 'Yellow', value: '#FFFF00' }, { name: 'Purple', value: '#800080' }, { name: 'Orange', value: '#FFA500' },
+      { name: 'Pink', value: '#FFC0CB' }, { name: 'Brown', value: '#A52A2A' }, { name: 'Gray', value: '#808080' },
+      { name: 'Black', value: '#000000' }, { name: 'White', value: '#FFFFFF' }, { name: 'Cyan', value: '#00FFFF' },
+      { name: 'Magenta', value: '#FF00FF' }, { name: 'Gold', value: '#FFD700' }, { name: 'Silver', value: '#C0C0C0' }
+    ];
+    const shapes = [
+      'Circle','Square','Triangle','Rectangle','Star','Heart','Diamond','Oval','Pentagon','Hexagon','Octagon','Crescent','Parallelogram','Trapezium','Arrow'
+    ];
+
+    let currentItems = [], currentIndex = 0, score = 0, currentGame = '';
+
+    window.onload = () => {
+      const welcome = new SpeechSynthesisUtterance("Welcome! Choose what you want to learn!");
+      speechSynthesis.speak(welcome);
+    }
+
+    function startGame(type) {
+      currentGame = type;
+      document.getElementById("menu").style.display = "none";
+      document.getElementById("gameArea").style.display = "flex";
+      document.getElementById("message").textContent = '';
+      currentItems = type === 'alphabet' ? [...alphabetLetters] :
+                     type === 'number' ? [...numbers] :
+                     type === 'color' ? [...colors] :
+                     [...shapes];
+      currentIndex = 0;
+      score = 0;
+      loadQuestion();
+    }
+
+    function shuffle(array) {
+      return array.sort(() => Math.random() - 0.5);
+    }
+
+    function loadQuestion() {
+      if (currentIndex >= currentItems.length) {
+        document.getElementById("message").textContent = "🎉 You finished! Score: " + score + "/" + currentItems.length;
+        document.getElementById("score").textContent = "";
+        return;
+      }
+      document.getElementById("gameContent").textContent = currentGame === 'color' ? currentItems[currentIndex].name : currentItems[currentIndex];
+      speak(currentGame === 'color' ? currentItems[currentIndex].name : currentItems[currentIndex]);
+
+      let options = [currentItems[currentIndex]];
+      while (options.length < 4) {
+        let item = currentGame === 'alphabet' ? alphabetLetters[Math.floor(Math.random() * alphabetLetters.length)] :
+                   currentGame === 'number' ? Math.floor(Math.random() * 100 + 1) :
+                   currentGame === 'color' ? colors[Math.floor(Math.random() * colors.length)] :
+                   shapes[Math.floor(Math.random() * shapes.length)];
+        if (!options.includes(item)) options.push(item);
+      }
+      options = shuffle(options);
+      const optionsEl = document.getElementById("options");
+      optionsEl.innerHTML = '';
+
+      options.forEach(option => {
+        const div = document.createElement("div");
+        div.className = "option";
+        div.textContent = currentGame === 'color' ? option.name : option;
+        if (currentGame === 'color') div.style.background = option.value;
+        div.onclick = () => checkAnswer(option);
+        optionsEl.appendChild(div);
+      });
+
+      document.getElementById("score").textContent = "Score: " + score + "/" + currentItems.length;
+    }
+
+    function checkAnswer(selected) {
+      let correct = currentItems[currentIndex];
+      if ((currentGame === 'color' && selected.name === correct.name) || selected === correct) {
+        score++;
+        document.getElementById("message").textContent = "✅ Correct!";
+        currentIndex++;
+        setTimeout(loadQuestion, 1000);
+      } else {
+        document.getElementById("message").textContent = "❌ Try again!";
+      }
+    }
+
+    function restartGame() {
+      document.getElementById("menu").style.display = "flex";
+      document.getElementById("gameArea").style.display = "none";
+      document.getElementById("gameContent").textContent = '';
+      document.getElementById("options").innerHTML = '';
+      document.getElementById("message").textContent = '';
+      document.getElementById("score").textContent = '';
+    }
+
+    function speak(text) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      speechSynthesis.speak(utterance);
+    }
+  </script>
+</body>
+</head>
+</html>
